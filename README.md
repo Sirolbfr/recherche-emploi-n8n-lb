@@ -10,4 +10,4 @@ N8N est un outli d'automatisation qui permet de relier plusieurs services entre-
 ![Setup Sheets](./img/sheets.png)
 
 ### Screenshot Discord :
-![Setup Discord](./img/Discord.png)
+![Setup Discord](./img/webhook.png)
