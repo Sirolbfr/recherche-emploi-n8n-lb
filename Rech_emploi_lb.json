@@ -1,0 +1,450 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        96
+      ],
+      "id": "03a86d55-cca1-48a9-931e-635dcdaa3678",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "insert_client_id"
+            },
+            {
+              "name": "client_secret",
+              "value": "insert_client_secret"
+            },
+            {
+              "name": "scope",
+              "value": "api_offresdemploiv2 o2dsoffre"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        192,
+        0
+      ],
+      "id": "36242854-4f7e-4de0-8bd9-61831c21f222",
+      "name": "Auth."
+    },
+    {
+      "parameters": {
+        "url": "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "range",
+              "value": "0-9"
+            },
+            {
+              "name": "publieeDepuis",
+              "value": "31"
+            },
+            {
+              "name": "sort",
+              "value": "1"
+            },
+            {
+              "name": "motsCles",
+              "value": "data analyst"
+            },
+            {
+              "name": "departement",
+              "value": "59,62,80,02,60"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        384,
+        0
+      ],
+      "id": "aa84167b-cc89-4509-9cf5-5072c57b3964",
+      "name": "API France Travail"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "insert_webhook_url",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "=### Intitulé du poste : __{{ $json.resultats.intitule }}__\nLien de l'offre : [Cliquer ici]({{ $json.resultats.origineOffre.urlOrigine }})"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1136,
+        -112
+      ],
+      "id": "cde29056-6bd2-49ff-8f85-784e08fc7049",
+      "name": "Webhook Discord"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZzwDUzsH81uWmIqPWwE5wOOf9lvZ7flz9-rXXf59ezk",
+          "mode": "list",
+          "cachedResultName": "Suivi Candidatures Data",
+          "cachedResultUrl": "insert_doc_link"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "insert_sheet_link"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date_publication": "={{ DateTime.fromISO($json.resultats.dateCreation).toFormat('dd/MM/yy') }}",
+            "Lieu": "={{ $json.resultats.lieuTravail.libelle || 'Non communiqué'}}",
+            "Entreprise": "={{ $json.resultats.entreprise.nom  || 'Non communiqué'}}",
+            "Intitulé": "={{ $json.resultats.intitule }}",
+            "Type": "={{ $json.resultats.typeContrat }}",
+            "Site_origine": "={{ $json.resultats.origineOffre.urlOrigine }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date_publication",
+              "displayName": "Date_publication",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Intitulé",
+              "displayName": "Intitulé",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Entreprise",
+              "displayName": "Entreprise",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lieu",
+              "displayName": "Lieu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Site_origine",
+              "displayName": "Site_origine",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lien_postulation",
+              "displayName": "Lien_postulation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Statut",
+              "displayName": "Statut",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date_candidature",
+              "displayName": "Date_candidature",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1136,
+        48
+      ],
+      "id": "583f67ec-bf48-41d4-a60c-f026a70a6d1d",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "insert_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "insert_doc_id",
+          "mode": "list",
+          "cachedResultName": "Suivi Candidatures Data",
+          "cachedResultUrl": "insert_doc_link"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "insert_sheet_link"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRangeA1"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        384,
+        208
+      ],
+      "id": "6625fc69-1f95-4e4a-8460-e1638c32febb",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "insert_id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "resultats",
+        "include": "",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        576,
+        0
+      ],
+      "id": "78ae204e-7b7c-4183-a1cf-a109aa6c3993",
+      "name": "Split FT"
+    },
+    {
+      "parameters": {
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "resultats.origineOffre.urlOrigine",
+              "field2": "Site_origine"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.compareDatasets",
+      "typeVersion": 2.3,
+      "position": [
+        800,
+        64
+      ],
+      "id": "719adf9a-9c6c-49c9-a3ef-75335ee003ce",
+      "name": "Compare Datasets"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Auth.",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth.": {
+      "main": [
+        [
+          {
+            "node": "API France Travail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API France Travail": {
+      "main": [
+        [
+          {
+            "node": "Split FT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Compare Datasets",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split FT": {
+      "main": [
+        [
+          {
+            "node": "Compare Datasets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Datasets": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Webhook Discord",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "439401c3-15af-403d-b78a-991bb0034d11",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ef6f8b821500da503766fe2a5fa08eeb50c2a08f1514eaf1f02196f2afba7f68"
+  },
+  "nodeGroups": [],
+  "id": "vUNuoIaoKijesNZj",
+  "tags": []
+}
